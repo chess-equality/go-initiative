@@ -1,0 +1,78 @@
+# ---- Go ----
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+dist/
+
+# Test coverage and profiling output
+*.prof
+*.pprof
+coverage.txt
+coverage.html
+coverage.out
+
+# Go workspace / vendor
+vendor/
+go.work
+go.work.sum
+
+# Build output
+build/
+
+# ---- Editor / IDE ----
+# VS Code custom configurations
+.vscode/
+*.code-workspace
+.history/
+.ionide/
+
+# JetBrains (GoLand, IntelliJ)
+.idea/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ---- macOS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# ---- Linux ----
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ---- Windows ----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---- OS / Environment ----
+.env
+.env.local
+.env.*.local
+
+# ---- Logs & temporary files ----
+*.log
+logs/
+tmp/
+temp/
