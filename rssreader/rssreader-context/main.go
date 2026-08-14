@@ -38,8 +38,13 @@ func fetchFeeds(ctx context.Context, urls []string) { // Modify the function to 
 
 func main() {
 	fmt.Println("Starting...")
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Create initial context with a timeout.
-	defer cancel()                                                           // Call cancellation function before returning.
+
+	// Create initial context with a 60-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
+	// The provided cancel() function will be called when downstream operations do not complete
+	// within the 60-second window, or to wrap things up when the main function returns.
+	defer cancel()
 	fetchFeeds(ctx, []string{
 		"https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
 		"https://feeds.bbci.co.uk/news/rss.xml",
