@@ -13,11 +13,7 @@ import (
 	"github.com/holmes89/gofeed"
 )
 
-type App struct { // Create an app struct to hold our store.
-	store *ArticleStore
-}
-
-type ArticleStore struct {
+type ArticleStore struct { // ArticleStore holds the articles and provides thread-safe access.
 	mu     sync.RWMutex   // Use a regular mutex (mu.Lock/Unlock) to protect writes and modifications to the store.
 	cache  map[string]any // This cache will be used to check if a article has already been added.
 	sorted []*gofeed.Item
@@ -29,14 +25,20 @@ func NewArticleStore() *ArticleStore {
 	}
 }
 
+type App struct { // Create an App struct to hold our store.
+	store *ArticleStore
+}
+
 func (a *App) articlesHandler(w http.ResponseWriter, r *http.Request) { // Create a new handler based on the Handler type definition.
 	numberofArticles := 10
 	if sizeStr := r.URL.Query().Get("size"); sizeStr != "" { // Find a query parameter for the length of the list of articles to return.
+		fmt.Println("Size parameter:", sizeStr)
 		if size, err := strconv.Atoi(sizeStr); err == nil && size > 0 {
 			numberofArticles = size
 		}
 	}
 	articles := a.store.GetRecent(numberofArticles)
+	fmt.Println("Number of articles:", len(articles))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(articles) // Encode article values.
 }
