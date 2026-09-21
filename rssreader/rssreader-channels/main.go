@@ -25,24 +25,6 @@ func NewArticleStore() *ArticleStore {
 	}
 }
 
-type App struct { // Create an App struct to hold our store.
-	store *ArticleStore
-}
-
-func (a *App) articlesHandler(w http.ResponseWriter, r *http.Request) { // Create a new handler based on the Handler type definition.
-	numberofArticles := 10
-	if sizeStr := r.URL.Query().Get("size"); sizeStr != "" { // Find a query parameter for the length of the list of articles to return.
-		fmt.Println("Size parameter:", sizeStr)
-		if size, err := strconv.Atoi(sizeStr); err == nil && size > 0 {
-			numberofArticles = size
-		}
-	}
-	articles := a.store.GetRecent(numberofArticles)
-	fmt.Println("Number of articles:", len(articles))
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(articles) // Encode article values.
-}
-
 func (s *ArticleStore) AddArticles(items []*gofeed.Item) {
 	s.mu.Lock()                  // Lock the mutex before batch modification.
 	defer s.mu.Unlock()          // Ensure the lock is released after the function returns.
@@ -69,13 +51,17 @@ func (s *ArticleStore) GetRecent(n int) []*gofeed.Item {
 	return s.sorted[:n] // Truncate to the requested size.
 }
 
+type App struct { // Create an App struct to hold our store.
+	store *ArticleStore
+}
+
 func (a *App) fetchFeed(ctx context.Context, url string) (gofeed.Feed, error) { // Change functions to methods on the new struct.
 	fmt.Println("Fetching feed:", url)
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURLWithContext(url, ctx) // Use the context-based call to leverage cancellation.
 	fmt.Println("Fetched:", url)
 	out := make(chan *gofeed.Item) // Create a channel to pass to the save function.
-	go saveFeed(out)               // Pass as part of a goroutine.
+	go a.saveFeed(out)             // Pass as part of a goutine.
 	defer close(out)               // Close the channel when done.
 	for _, article := range feed.Items {
 		fmt.Println("Ingesting article:", article.Link)
@@ -100,13 +86,29 @@ func (a *App) fetchFeeds(ctx context.Context, store *ArticleStore, urls []string
 	return errChan // Return the channel at the end.
 }
 
-func saveFeed(articles chan *gofeed.Item) { // Pass in channels like any other parameter.
+func (a *App) saveFeed(articles chan *gofeed.Item) { // Pass in channels like any other parameter.
 	fmt.Println("Adding articles...")
 	for article := range articles { // Read data from channel using range.
 		// fmt.Println("Adding article:", article.Link)
+		a.store.AddArticles([]*gofeed.Item{article})
 		fmt.Println("Article added:", article.Link)
 	}
 	fmt.Println("All articles added.")
+}
+
+
+func (a *App) articlesHandler(w http.ResponseWriter, r *http.Request) { // Create a new handler based on the Handler type definition.
+	numberofArticles := 10
+	if sizeStr := r.URL.Query().Get("size"); sizeStr != "" { // Find a query parameter for the length of the list of articles to return.
+		fmt.Println("Size parameter:", sizeStr)
+		if size, err := strconv.Atoi(sizeStr); err == nil && size > 0 {
+			numberofArticles = size
+		}
+	}
+	articles := a.store.GetRecent(numberofArticles)
+	fmt.Println("Number of articles:", len(articles))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(articles) // Encode article values.
 }
 
 func main() {
