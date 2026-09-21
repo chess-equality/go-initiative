@@ -96,7 +96,14 @@ func (a *App) saveFeed(articles chan *gofeed.Item) { // Pass in channels like an
 	fmt.Println("All articles added.")
 }
 
-
+// articlesHandler HTTP GET endpoint for retrieving recent articles.
+// To retrieve last 10:
+//
+//	curl -v -s http://localhost:8080/articles | jq
+//
+// To retrieve last X number:
+//
+//	curl -v -s http://localhost:8080/articles?size=X | jq
 func (a *App) articlesHandler(w http.ResponseWriter, r *http.Request) { // Create a new handler based on the Handler type definition.
 	numberofArticles := 10
 	if sizeStr := r.URL.Query().Get("size"); sizeStr != "" { // Find a query parameter for the length of the list of articles to return.
@@ -129,7 +136,6 @@ func main() {
 
 	http.HandleFunc("/articles", app.articlesHandler) // Handle calls to the /articles endpoint.
 	fmt.Println("HTTP server listening on :8080")
-	// curl -v -s http://localhost:8080/articles | jq
 
 	if err := http.ListenAndServe(":8080", nil); err != nil { // Run the HTTP server until an error occurs.
 		fmt.Println("Server error:", err)
